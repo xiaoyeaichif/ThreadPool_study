@@ -6,13 +6,28 @@
 using namespace std;
 class MyTask : public Task {
 public:
-	void run()
+	MyTask(int begin,int end)
+		:begin_(begin)
+		,end_(end)
+	{}
+
+	//问题一：怎么设计run函数的返回值，可以表示任意的类型
+	//C++17 Any类型------->是可以任意接收其他类型的基类
+	//java 和 python 中有个类交object类，是所有类的基类
+	Any run()
 	{
 		std::cout << "tid: " << std::this_thread::get_id() << "begin!" << std::endl;
-		//睡上两秒
-		std::this_thread::sleep_for(std::chrono::seconds(5));
+		int sum = 0;
+		for (int i = begin; i < end; i++)
+		{
+			sum += i;
+		}
 		std::cout << "tid: " << std::this_thread::get_id() << "end!" << std::endl;
+		return sum;
 	}
+private:
+	int begin_;
+	int end_;
 };
 
 

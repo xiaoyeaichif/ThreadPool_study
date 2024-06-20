@@ -9,6 +9,58 @@
 #include <mutex>
 #include <condition_variable>
 #include <functional>
+
+//Any类型：可以接收任意数据的类型
+
+class Any {
+public:
+	//默认构造函数
+	Any() = default;
+	~Any() = default;
+	//禁止拷贝构造和赋值
+	Any(const Any&) = delete;
+	Any & operator=(const Any&) = delete;
+	//右值构造使用默认
+	Any(Any&&) = default; 
+
+	template<typename T>
+	Any(T data):base_(std::make_unique<Derive<T>>(data))
+	{}
+
+	//这个方法把Any对象里面存储的data_数据提取出来
+	template<typename T>
+	T cast_()
+	{
+		//我们怎么从 base_找到它所指向的Derive对象，从他里面获取data成员变量
+		//基类指针转为派生类指针
+		Derive<T>* pd = dynamic_cast<Derive<T>*>(base_.get());
+		if (pd == nullptr)
+		{
+			throw "type is unmatch!";
+		}
+		return pd->data_
+	}
+private:
+	//嵌套类
+	//基类类型
+	class Base {
+	public:
+		virtual ~Base() = default;
+	};
+
+	//派生类
+	template<typename T>
+	class Derive :public Base {
+	public:
+		Derive(T data):data_(data){}
+		T data_;
+	};
+private:
+	std::unique_ptr<Base>base_;
+};
+
+
+
 //任务抽象基类
 //用户可以自定义任意任务类型,从TASK继承，重写run方法，实现
 class Task {

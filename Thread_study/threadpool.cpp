@@ -18,7 +18,7 @@ ThreadPool::ThreadPool()
 
 //线程池的析构
 /*
-* 1:由于我们自己灭有new,所以析构不用谢
+* 1:由于我们自己没有new,所以析构不用写
 */
 ThreadPool::~ThreadPool()
 {
