@@ -70,7 +70,10 @@ void ThreadPool::submitTask(std::shared_ptr<Task>sp)
 	}
 	//如果有空余，将任务放进任务队列
 	taskQue_.emplace(sp);//放任务
-	taskSize_++;
+	/*
+		问题：其实已经有队列中已经在统计元素个数了，为什么还需要有个单独的变量记录呢？
+	*/
+	taskSize_++; 
 
 	//因为新放了任务，任务队列不为空了，notEmpty_进行通知，赶快分配线程执行任务
 	notEmpty_.notify_all();
@@ -142,7 +145,7 @@ void ThreadPool::threadFunc()
 			{
 				notEmpty_.notify_all();
 			}
-			//执行完任务的通知
+			//队列不为满，应该提醒继续加任务
 			notFull_.notify_all();
 		}
 		//当前线程的负责执行这个任务

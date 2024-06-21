@@ -13,20 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="源文件\01多线程学习">
-      <UniqueIdentifier>{1b6636e7-de8c-4169-92b1-2124f3a13c6b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\02线程池的实现">
       <UniqueIdentifier>{b3615969-0562-4b16-a1e8-0d45369b5b0b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="01thread的使用.cpp">
-      <Filter>源文件\01多线程学习</Filter>
-    </ClCompile>
-    <ClCompile Include="10生产者消费者模型.cpp">
-      <Filter>源文件\01多线程学习</Filter>
-    </ClCompile>
     <ClCompile Include="threadpool.cpp">
       <Filter>源文件\02线程池的实现</Filter>
     </ClCompile>

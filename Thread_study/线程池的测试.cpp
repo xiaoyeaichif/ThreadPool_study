@@ -31,7 +31,7 @@ private:
 };
 
 
-int main()
+int main_xiancehngchi()
 {
 	ThreadPool pool;
 	int num = 4;

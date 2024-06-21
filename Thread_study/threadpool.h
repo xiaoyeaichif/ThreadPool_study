@@ -147,7 +147,7 @@ private:
 	std::atomic_int taskSize_; // 任务的数量
 	int taskQueMaxThreshHold_; //任务队列数量上限阈值
 
-	std::mutex taskQueMtx_; //保证任务队列线程安全
+	std::mutex taskQueMtx_; //任务队列的互斥锁，保证任务队列线程安全
 
 	std::condition_variable notFull_;  //表示任务队列不满,可以继续生产
 	std::condition_variable notEmpty_; //表示任务队列不空，可以继续加入

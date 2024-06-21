@@ -127,8 +127,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="01thread的使用.cpp" />
-    <ClCompile Include="10生产者消费者模型.cpp" />
     <ClCompile Include="threadpool.cpp" />
     <ClCompile Include="线程池的测试.cpp" />
   </ItemGroup>
