@@ -46,7 +46,7 @@ void ThreadPool::setTaskQueMaxThreshHold(int threahhold)
 
 //给线程池提交任务
 //生产任务对象
-void ThreadPool::submitTask(std::shared_ptr<Task>sp) 
+Result ThreadPool::submitTask(std::shared_ptr<Task>sp) 
 {
 	//首先要获取锁
 	std::unique_lock<std::mutex>lock(taskQueMtx_);
@@ -66,7 +66,8 @@ void ThreadPool::submitTask(std::shared_ptr<Task>sp)
 		[&]()->bool {return taskQue_.size() < taskQueMaxThreshHold_; }))
 	{
 		std::cerr << "task queue is full,submit task fail." << std::endl;
-		return;
+		//任务提交失败，返回无效的的值
+		return Result(sp,false);
 	}
 	//如果有空余，将任务放进任务队列
 	taskQue_.emplace(sp);//放任务
@@ -77,6 +78,10 @@ void ThreadPool::submitTask(std::shared_ptr<Task>sp)
 
 	//因为新放了任务，任务队列不为空了，notEmpty_进行通知，赶快分配线程执行任务
 	notEmpty_.notify_all();
+
+	//返回Result对象
+	return Result(sp);
+
 }
 
 //开启线程池
@@ -151,7 +156,11 @@ void ThreadPool::threadFunc()
 		//当前线程的负责执行这个任务
 		if (task != nullptr)
 		{
-			task->run();
+			/*
+			* 负责两件事  1：执行任务
+			*			  2：把任务的返回值setValue方法给到Result
+			*/
+			task->exec();
 		}
 	}
 
@@ -177,4 +186,48 @@ void Thread::start()
 	/*
 		线程t在出了start这个作用域后就会消亡, 而线程函数func_是不会消亡的, 所以需要设置分离线程
 	*/
+}
+
+
+//////////////// Task方法实现
+Task::Task():result_(nullptr){}
+
+void Task::exec()
+{
+	if (result_ != nullptr)
+	{
+		result_->setVal(run());//这里发生多态调用
+	}
+}
+
+void Task::setResult(Result* res) 
+{
+	result_ = res;
+}
+
+/////////////////// Result方法的实现
+
+//构造函数的实现
+Result::Result(std::shared_ptr<Task>task, bool isValid )
+	:task_(task)
+	,isValid_(isValid)
+{
+	task_->setResult(this); //this  指的当前的Result对象，设置给task对象
+}
+
+void Result::setVal(Any any)
+{
+	//存储task的返回值
+	this->any_ = std::move(any);
+	sem_.post();//已经获取任务的返回值，增加信号量资源
+}
+//
+Any Result::get()
+{
+	if (!isValid_)
+	{
+		return "";
+	}
+	sem_.wait();// task任务如果没有执行完，需要等待，会阻塞用户的线程
+	return std::move(any_);
 }
