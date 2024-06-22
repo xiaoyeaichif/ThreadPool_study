@@ -205,20 +205,30 @@ void ThreadPool::threadFunc(int threadid) //线程函数执行完，相应的线程就结束了
 				应该把多余的线程回收掉（超过默认大小initThreadSize_数量线程要进行回收）
 				2：当前时间减去 - 上一次时间  > 60
 			*/
-			if (poolMode_ == PoolMode::MODE_CATCH)
+			while (taskQue_.size() == 0)
 			{
+				// 线程池要结束，回收线程资源
+				if (!isPoolRunning_)
+				{
+					threads_.erase(threadid); // 
+					std::cout << "threadid:" << std::this_thread::get_id() << " exit!"
+						<< std::endl;
+					exitCond_.notify_all();
+					return; // 线程函数结束，线程结束
+				}
+
 				// 每一秒返回一次   
 				//怎么区分：超时返回 还是  有任务执行返回
-				while (taskQue_.size() == 0)
+				if (poolMode_ == PoolMode::MODE_CATCH)
 				{
 					//条件变量超时返回
-					if(std::cv_status::timeout ==
+					if (std::cv_status::timeout ==
 						notEmpty_.wait_for(lock, std::chrono::seconds(1)))
 					{
 						auto nowTime = std::chrono::high_resolution_clock().now();
 						auto dur = std::chrono::duration_cast<std::chrono::seconds>(lastTime - nowTime);
 						//回收线程
-						if (dur.count() >= THREAD_MAX_IDLE_TIME && curThreadSize_ >  initThreadSize_)
+						if (dur.count() >= THREAD_MAX_IDLE_TIME && curThreadSize_ > initThreadSize_)
 						{
 							/*
 								1：回收当前线程
@@ -236,15 +246,20 @@ void ThreadPool::threadFunc(int threadid) //线程函数执行完，相应的线程就结束了
 						}
 					}
 				}
-			}
-			else {
-				//等待notEmpty条件,判断任务队列是否为空
-				//释放锁
-				//lambda匿名表达式写法
-				notEmpty_.wait(lock, [&]()->bool {return taskQue_.size() > 0; });
-			}
+				else {
+					//等待notEmpty条件,判断任务队列是否为空
+					//释放锁
+					//lambda匿名表达式写法
+					//notEmpty_.wait(lock, [&]()->bool {return taskQue_.size() > 0; });
 
+					// 等待notEmpty条件
+					notEmpty_.wait(lock);
+				}
+			}
+			// 下面都是处理任务的逻辑
 			
+			//队列中有任务可以取了，需要消耗一个空闲线程
+			idleThreadSize_--;
 
 			std::cout << "tid: " << std::this_thread::get_id() << "已经获取到任务..." << std::endl;
 
@@ -252,9 +267,6 @@ void ThreadPool::threadFunc(int threadid) //线程函数执行完，相应的线程就结束了
 			task = taskQue_.front();
 			taskQue_.pop();
 			taskSize_--;
-
-			//队列中有任务可以取了，需要消耗一个空闲线程
-			idleThreadSize_--;
 
 			//如果依然有剩余任务,继续通知其他的线程执行任务
 			if (taskQue_.size() > 0)

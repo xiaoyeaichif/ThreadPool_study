@@ -24,7 +24,7 @@ public:
 	Any run()
 	{
 		std::cout << "tid: " << std::this_thread::get_id() << "begin!" << std::endl;
-		std::this_thread::sleep_for(std::chrono::seconds(4));
+		std::this_thread::sleep_for(std::chrono::seconds(3));
 		Ulong sum = 0;
 		for (Ulong i = begin_; i <= end_; i++)
 		{
@@ -41,17 +41,17 @@ private:
 
 int main()
 {
-	{
-		ThreadPool pool;
-		int num = 4;
-		//用户自己设置线程池的工作模式
-		pool.start(num);//初始化num个线程
-		Result res1 = pool.submitTask(std::make_shared<MyTask>(1, 10000));
-		Ulong sum1 = res1.get().cast_<Ulong>();
-		cout << sum1 << endl; 
-	}
-	cout << " main over!" << endl;
-#if 0
+	//{
+	//	ThreadPool pool;
+	//	int num = 4;
+	//	//用户自己设置线程池的工作模式
+	//	pool.start(num);//初始化num个线程
+	//	Result res1 = pool.submitTask(std::make_shared<MyTask>(1, 1000000000));
+	//	Ulong sum1 = res1.get().cast_<Ulong>();
+	//	cout << sum1 << endl; 
+	//}
+	//cout << " main over!" << endl;
+//#if 0
 	{
 
 		ThreadPool pool;
@@ -63,12 +63,12 @@ int main()
 		//记录线程运行的开始时间
 		//auto start_time = std::chrono::high_resolution_clock::now();
 
-		Result res1 = pool.submitTask(std::make_shared<MyTask>(1, 10000));
-		Result res2 = pool.submitTask(std::make_shared<MyTask>(10001, 20000));
-		Result res3 = pool.submitTask(std::make_shared<MyTask>(20001, 30000));
-		pool.submitTask(std::make_shared<MyTask>(20001, 30000));
-		pool.submitTask(std::make_shared<MyTask>(20001, 30000));
-		pool.submitTask(std::make_shared<MyTask>(20001, 30000));
+		Result res1 = pool.submitTask(std::make_shared<MyTask>(1, 1000000));
+		Result res2 = pool.submitTask(std::make_shared<MyTask>(1000001, 2000000));
+		Result res3 = pool.submitTask(std::make_shared<MyTask>(2000001, 3000000));
+		pool.submitTask(std::make_shared<MyTask>(2000001, 3000000));
+		pool.submitTask(std::make_shared<MyTask>(2000001, 3000000));
+		pool.submitTask(std::make_shared<MyTask>(2000001, 3000000));
 
 		//get返回一个Any类型
 		Ulong sum1 = res1.get().cast_<Ulong>();
@@ -95,7 +95,7 @@ int main()
 	// 
 	//auto main_start_time = std::chrono::high_resolution_clock::now();
 	Ulong sum = 0;
-	for (int i = 1; i <= 3000; i++)
+	for (int i = 1; i <= 30000000; i++)
 	{
 		sum += i;
 	}
@@ -108,5 +108,5 @@ int main()
 	cout << sum << endl;
 	
 	getchar();
-#endif
+//#endif
 }
