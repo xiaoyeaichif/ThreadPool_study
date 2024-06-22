@@ -21,13 +21,16 @@ ThreadPool::ThreadPool()
 	, isPoolRunning_(false)
 {}
 
+
+
 //线程池的析构
-/*
-* 1:由于我们自己没有new,所以析构不用写
-*/
 ThreadPool::~ThreadPool()
 {
-
+	isPoolRunning_ = false;
+	notEmpty_.notify_all();
+	//等待线程池所有的线程返回，有两种状态：阻塞 && 正在运行中
+	std::unique_lock<std::mutex>lock(taskQueMtx_);
+	exitCond_.wait(lock, [&]()->bool {return threads_.size() == 0; });
 }
 
 
@@ -232,9 +235,8 @@ void ThreadPool::threadFunc(int threadid) //线程函数执行完，相应的线程就结束了
 			else {
 				//等待notEmpty条件,判断任务队列是否为空
 				//释放锁
-				notEmpty_.wait(lock);
 				//lambda匿名表达式写法
-				//notEmpty_.wait(lock, [&]()->bool {return taskQue_.size() > 0; });
+				notEmpty_.wait(lock, [&]()->bool {return taskQue_.size() > 0; });
 			}
 
 			//有任务可以取了，需要消耗一个空闲线程
