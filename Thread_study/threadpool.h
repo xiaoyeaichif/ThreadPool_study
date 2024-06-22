@@ -181,7 +181,7 @@ enum class PoolMode
 //线程类型
 class Thread{
 public:
-	using ThreadFunc = std::function<void()>;
+	using ThreadFunc = std::function<void(int)>;
 	//线程的构造
 	Thread(ThreadFunc func);
 	// 线程的析构
@@ -189,8 +189,13 @@ public:
 	//启动线程
 	void start();
 
+	//获取线程id
+	int getId() const;
+
 private:
 	ThreadFunc func_;
+	static int generatedId_;
+	int threadId_; //保存线程id
 };
 
 
@@ -222,6 +227,9 @@ public:
 	//设置线程的初始线程数量
 	//void setinitThreadSize(int size);
 
+	//设置线程池中线程的上限阈值(catch模式)
+	void setThreadSizeThreshHold(int threahhold);
+
 
 	//设置task任务队列上限阈值
 	void setTaskQueMaxThreshHold(int threahhold);
@@ -234,12 +242,26 @@ public:
 	ThreadPool &operator = (const ThreadPool&) = delete;//赋值构造
 private:
 	//定义线程函数
-	void threadFunc();
+	void threadFunc(int threadid); //这个函数用来使线程工作
+
+	//检查pool的运行状态
+	bool checkRunningState() const;
 	
 private:
 	//把Thread*改为用智能指针管理
-	std::vector<std::unique_ptr<Thread>>threads_;  //线程列表
-	size_t initThreadSize_;         //初始线程数量
+	//std::vector<std::unique_ptr<Thread>>threads_;  //线程列表
+
+	//
+	std::unordered_map<int, std::unique_ptr<Thread>>threads_;
+
+	size_t initThreadSize_;          //初始线程数量
+	 
+	size_t threadSizeThreshHold_;    //线程数量上限阈值
+
+	std::atomic_int curThreadSize_;  //记录当前线程池中的总线程
+
+	std::atomic_int idleThreadSize_; //记录空闲线程的数量
+
 	/*
 	* 任务队列为什么使用智能指针？
 	*/
@@ -253,6 +275,8 @@ private:
 	std::condition_variable notEmpty_; //表示任务队列不空，可以继续加入
 
 	PoolMode poolMode_;//当前线程池的工作模式
+	std::atomic_bool isPoolRunning_;  //表示当前线程池的启动状态
+
 };
 
 #endif
