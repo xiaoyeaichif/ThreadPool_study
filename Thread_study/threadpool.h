@@ -171,8 +171,8 @@ private:
 //线程池支持的模式
 enum class PoolMode
 {
-	MODE_FIXED,
-	MODE_CATCH,
+	MODE_FIXED, // 默认模式
+	MODE_CATCH, // 可选模式
 };
 
 
@@ -210,7 +210,7 @@ private:
 
 
 
-//线程池类型
+// **********************************		线程池类型
 class ThreadPool
 {
 public:
@@ -219,7 +219,7 @@ public:
 	~ThreadPool();
 
 	//开启线程池
-	void start(int initThreadSize = 4);
+	void start(int initThreadSize = std::thread::hardware_concurrency());
 
 	//设置线程的工作模式
 	void setMode(PoolMode mode);
@@ -271,8 +271,8 @@ private:
 
 	std::mutex taskQueMtx_; //任务队列的互斥锁，保证任务队列线程安全
 
-	std::condition_variable notFull_;  //表示任务队列不满,可以继续生产
-	std::condition_variable notEmpty_; //表示任务队列不空，可以继续加入
+	std::condition_variable notFull_;  //表示任务队列不满,就是还有任务，可以继续给线程
+	std::condition_variable notEmpty_; //表示任务队列不空，可以继续加入任务task
 	std::condition_variable exitCond_; //等待线程资源全部回收
 
 	PoolMode poolMode_;//当前线程池的工作模式

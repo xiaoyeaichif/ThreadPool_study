@@ -3,6 +3,7 @@
 #include<chrono>
 #include "threadpool.h"
 
+using namespace std;
 
 using Ulong = unsigned long long;
 
@@ -40,6 +41,17 @@ private:
 
 int main()
 {
+	{
+		ThreadPool pool;
+		int num = 4;
+		//用户自己设置线程池的工作模式
+		pool.start(num);//初始化num个线程
+		Result res1 = pool.submitTask(std::make_shared<MyTask>(1, 10000));
+		Ulong sum1 = res1.get().cast_<Ulong>();
+		cout << sum1 << endl; 
+	}
+	cout << " main over!" << endl;
+#if 0
 	{
 
 		ThreadPool pool;
@@ -96,4 +108,5 @@ int main()
 	cout << sum << endl;
 	
 	getchar();
+#endif
 }
