@@ -222,6 +222,11 @@ void ThreadPool::threadFunc(int threadid) //线程函数执行完，相应的线程就结束了
 				if (poolMode_ == PoolMode::MODE_CATCH)
 				{
 					//条件变量超时返回
+					/*
+						如果线程池模式为 MODE_CATCH，线程会每隔一秒钟检查一次是否超时。
+						如果超时且线程空闲时间超过 THREAD_MAX_IDLE_TIME，并且当前线程数大于初始线程数，线程将被回收。
+						否则，线程等待条件变量 notEmpty_，直到有任务可用。
+					*/
 					if (std::cv_status::timeout ==
 						notEmpty_.wait_for(lock, std::chrono::seconds(1)))
 					{
@@ -312,7 +317,7 @@ int Thread::generatedId_ = 0; // 静态对象需要再类外初始化
 //线程的构造
 Thread::Thread(ThreadFunc func)
 	:func_(func)
-	,threadId_(generatedId_++)
+	,threadId_(generatedId_++) //创建一个线程,线程的Id就会+1
 {}
 // 线程的析构
 Thread::~Thread() {}

@@ -10,7 +10,7 @@
 #include <condition_variable>
 #include <functional>
 
-//Any类型：可以接收任意数据的类型
+//******************************************   Any类型：可以接收任意数据的类型，便于获取返回值
 
 class Any {
 public:
@@ -70,7 +70,7 @@ private:
 };
 
 
-//实现一个信号量类
+//**********************************************    实现一个信号量类
 class Semaphore 
 {
 public:
@@ -149,7 +149,7 @@ private:
 
 
 
-//任务抽象基类
+//**************************************************   任务抽象基类
 //用户可以自定义任意任务类型,从TASK继承，重写run方法，实现
 class Task {
 public:
@@ -168,7 +168,7 @@ private:
 	Result* result_;
 };
 
-//线程池支持的模式
+//********************************          线程池支持的模式
 enum class PoolMode
 {
 	MODE_FIXED, // 默认模式
@@ -178,39 +178,30 @@ enum class PoolMode
 
 
 
-//线程类型
+//********************************         线程类型
 class Thread{
 public:
+	//定义一个函数对象，参数为int，返回值为void类型
 	using ThreadFunc = std::function<void(int)>;
 	//线程的构造
 	Thread(ThreadFunc func);
 	// 线程的析构
 	~Thread();
-	//启动线程
+	//启动线程,
 	void start();
 
 	//获取线程id
 	int getId() const;
 
 private:
-	ThreadFunc func_;
+	ThreadFunc func_;  //声明func_的类型是一个函数变量
 	static int generatedId_;
 	int threadId_; //保存线程id
 };
 
 
-/*
 
-
-
-
-*/
-
-
-
-
-
-// **********************************		线程池类型
+// **********************************		   线程池类型
 class ThreadPool
 {
 public:
@@ -218,16 +209,14 @@ public:
 	ThreadPool();
 	~ThreadPool();
 
-	//开启线程池
+	//开启线程池，并设置初始线程的个数, 默认线程个数为PC机的核个数
 	void start(int initThreadSize = std::thread::hardware_concurrency());
 
 	//设置线程的工作模式
 	void setMode(PoolMode mode);
 
-	//设置线程的初始线程数量
-	//void setinitThreadSize(int size);
 
-	//设置线程池中线程的上限阈值(catch模式)
+	//设置线程池中线程的上限阈值(cached模式)
 	void setThreadSizeThreshHold(int threahhold);
 
 
@@ -254,13 +243,13 @@ private:
 	//
 	std::unordered_map<int, std::unique_ptr<Thread>>threads_;
 
-	size_t initThreadSize_;          //初始线程数量
-	 
+	size_t initThreadSize_;          //初始线程个数
+		
+	std::atomic_int curThreadSize_;  //记录当前线程池中的总线程个数
+
+	std::atomic_int idleThreadSize_; //记录空闲线程的个数
+
 	size_t threadSizeThreshHold_;    //线程数量上限阈值
-
-	std::atomic_int curThreadSize_;  //记录当前线程池中的总线程
-
-	std::atomic_int idleThreadSize_; //记录空闲线程的数量
 
 	/*
 	* 任务队列为什么使用智能指针？
@@ -271,13 +260,12 @@ private:
 
 	std::mutex taskQueMtx_; //任务队列的互斥锁，保证任务队列线程安全
 
-	std::condition_variable notFull_;  //表示任务队列不满,就是还有任务，可以继续给线程
-	std::condition_variable notEmpty_; //表示任务队列不空，可以继续加入任务task
+	std::condition_variable notFull_;  //表示任务队列不满,可以继续加入任务数量，也就是task
+	std::condition_variable notEmpty_; //表示任务队列不空，可以提醒线程继续取出任务执行
 	std::condition_variable exitCond_; //等待线程资源全部回收
 
 	PoolMode poolMode_;//当前线程池的工作模式
 	std::atomic_bool isPoolRunning_;  //表示当前线程池的启动状态
-
 };
 
 #endif
